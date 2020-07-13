@@ -12,8 +12,7 @@ def read_bytes(ser, address, count_words):
 
     data = []
     for i in range(count_words):
-        value = struct.unpack('<I', ser.read(4))[0]
-        data.append(value)
+        data.extend(list(struct.unpack('BBBB', ser.read(4))))
     return data
 
 def main():
@@ -73,9 +72,40 @@ def main():
                 data.extend(read_bytes(ser, address, count_words_now))
 
                 count_words -= count_words_now
+                address += count_words_now * 4
 
-            data = ' '.join([f'{b:08x}' for b in data])
+            data = ' '.join([f'{b:02x}' for b in data])
             print(f'address {address:08x} = {data}')
+        elif cmd == 'd' or cmd == 'dump':
+            if len(args) != 3:
+                print('usage: dump address count_words filename')
+                continue
+
+            address = int(args[0], 16)
+            if address < 0 or address > 0xffffffff:
+                print('invalid address')
+                continue
+
+            count_words = int(args[1])
+            if count_words <= 0:
+                print('invalid count_words')
+                continue
+            last_address = address + count_words - 1
+            if last_address > 0xffffffff:
+                print('invalid count_words (out of bounds read)')
+                continue
+
+            filename = args[2]
+            print(f'dumping to {filename}')
+            with open(filename, 'wb') as f:
+                while count_words > 0:
+                    count_words_now = min(count_words, 0x40)
+                    f.write(bytes(read_bytes(ser, address, count_words_now)))
+
+                    count_words -= count_words_now
+                    address += count_words_now * 4
+                    print(f'{count_words} words remaining')
+            print('dump complete')
         elif cmd == 'w' or cmd == 'write':
             if len(args) != 2:
                 print('usage: write address value')
