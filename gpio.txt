@@ -1,0 +1,19 @@
+      / red
+      | / orange     
+      | | / green
+      | | | / blue
+      V V V V
+      X X X X
+    |----------|
+    |  RN-171  |  FN
+    |----------|  RST
+
+bit 4 (out) - green LED
+bit 5 (out) - orange LED
+bit 6 (out) - red LED
+bit 7 (out) - blue LED
+bit 1 (in)  - FN button
+
+8000_00a0 - direction register (0 = input, 1 = output)
+8000_00ac - input register
+8000_00b0 - output register
